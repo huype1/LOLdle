@@ -16,6 +16,8 @@ def home():
 
         # Structuring of queries data into a usable list
         champions = [str(r)[2:-3] for r in res]
+        if not current_user.is_authenticated:
+            return redirect('/login')
     
     return render_template("index.html", champions=champions)
 
@@ -60,12 +62,12 @@ def process():
         year_feedback = "correct"
 
     # Compare champ skins guess with answer
-    if (int(champ.skins) > int(answer_champ.skins)):
-        skins_feedback = "lower"
-    elif (int(champ.skins) < int(answer_champ.skins)):
-        skins_feedback = "higher"
-    else:
-        skins_feedback = "correct"
+    # if (int(champ.skins) > int(answer_champ.skins)):
+    #     skins_feedback = "lower"
+    # elif (int(champ.skins) < int(answer_champ.skins)):
+    #     skins_feedback = "higher"
+    # else:
+    #     skins_feedback = "correct"
 
     # Check whether guess is correct
     if (champ.name == answer_champ.name):
@@ -82,7 +84,7 @@ def process():
         'rolevalue' : champ.role,
         'year' : year_feedback, 
         'yearvalue' : champ.year,
-        'skins' : skins_feedback,
+        # 'skins' : skins_feedback,
         'skinvalue' : champ.skins,
         'answer' : answer_champ.name
         }) 
@@ -96,6 +98,7 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
             flash('Invalid username or password')
+            print("Error wrong username, password")
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
