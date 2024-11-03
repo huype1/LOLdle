@@ -14,7 +14,7 @@ $(document).ready(function() {
         guess = guess[0].toUpperCase() + guess.substring(1);
         $.ajax({
             data : {
-                champion : guess
+                champion : guess,
             },
             type : 'POST',
             url : '/process'

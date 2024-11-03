@@ -11,14 +11,19 @@ import random
 @app.route("/", methods=["POST", "GET"])
 def home():
     if request.method == "GET":
-        # Query data from database to allow updating of champion list
-        res = Champion.query.with_entities(Champion.name)
+        # Query data from the database for the champion list
+        res = Champion.query.with_entities(Champion.Name, Champion.Image)
+        print(res)
+        # Structuring the data into a list of dictionaries with Name and Image
+        champions = [{"name": r.Name, "image":r.Image} for r in res]
 
-        # Structuring of queries data into a usable list
-        champions = [str(r)[2:-3] for r in res]
+        # Redirect if user is not authenticated
         if not current_user.is_authenticated:
             return redirect('/login')
-    
+
+        # Print champions list for debugging
+        print(champions)
+
     return render_template("index.html", champions=champions)
 
 # Route for the home page. The majority of the page will be displayed here. 
@@ -29,65 +34,88 @@ def index():
 # Process form 
 @app.route('/process', methods=['POST'])
 def process():
-    # Get data from request object - champion name
-    
+    # Get data from request object - champion Name
     champion = request.form
     champ2 = champion.to_dict()['champion']
 
     # Find champion data in champion database
-    champ = Champion.query.filter_by(name=champ2).first()
-    
-    # If champion isnt found, abort post request
-    if champ == None:
+    champ = Champion.query.filter_by(Name=champ2).first()
+
+    # If champion isn't found, abort post request
+    if champ is None:
         abort(403, "Forbidden: Champion not found")
 
     # Retrieve a seeded answer based on days since epoch in db
-    seed = (datetime.datetime.utcnow() - datetime.datetime(1970,1,1)).days
+    # Improved version
+    total_champions = Champion.query.count()
+    if total_champions == 0:
+        abort(500, "No champions in database")
+
+    seed = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
     random.seed(seed)
-    answer_index = random.randint(1,159)
+    answer_index = random.randint(1, total_champions)
     answer_champ = Champion.query.get(answer_index)
-    
-    # Compare champ year with answer
-    if (champ.role == answer_champ.role):
-        role_feedback = "correct"
-    else:
-        role_feedback = "incorrect"
 
-    # Compare champ year guess with answer
-    if (int(champ.year) > int(answer_champ.year)):
-        year_feedback = "lower"
-    elif (int(champ.year) < int(answer_champ.year)):
-        year_feedback = "higher"
-    else:
-        year_feedback = "correct"
 
-    # Compare champ skins guess with answer
-    # if (int(champ.skins) > int(answer_champ.skins)):
-    #     skins_feedback = "lower"
-    # elif (int(champ.skins) < int(answer_champ.skins)):
-    #     skins_feedback = "higher"
-    # else:
-    #     skins_feedback = "correct"
+    # Check if answer_champ is None
+    if answer_champ is None:
+        abort(500, "Internal Server Error: Could not retrieve answer champion")
 
-    # Check whether guess is correct
-    if (champ.name == answer_champ.name):
-        champ_feedback = "correct"
-        
-    else:
-        champ_feedback = "incorrect"
-        
-    # Currently returns a JSON object with champion data
+    feedback = {
+        'Name': "incorrect",
+        'Gender': "incorrect",
+        'Positions': "incorrect",
+        'RangeType': "incorrect",
+        'Regions': "incorrect",
+        'year': None,
+        'champion': "incorrect"
+    }
+
+    # Define fields to check and feedback mapping
+    fields_to_check = {
+        'Name': (champ.Name, answer_champ.Name),
+        'Gender': (champ.Gender, answer_champ.Gender),
+        'Positions': (champ.Positions, answer_champ.Positions),
+        'RangeType': (champ.RangeType, answer_champ.RangeType),
+        'Regions': (champ.Regions, answer_champ.Regions),
+        'year': (int(champ.year), int(answer_champ.year)),
+    }
+
+    # Loop to evaluate fields
+    for field, (champ_value, answer_value) in fields_to_check.items():
+        if field == 'year':
+            # Only 'higher' or 'lower' feedback for 'year'
+            if champ_value > answer_value:
+                feedback['year'] = "lower"
+            elif champ_value < answer_value:
+                feedback['year'] = "higher"
+            else:
+                feedback['year'] = "correct"
+        else:
+            # Generic check for other fields
+            feedback[field] = "correct" if champ_value == answer_value else "incorrect"
+
+    # Final check if champion name is correct
+    feedback['champion'] = "correct" if champ.Name == answer_champ.Name else "incorrect"
+
+    # Return JSON object with updated feedback
     return jsonify({
-        'champion' : champ_feedback, 
-        'name' : champ.name,
-        'role' : role_feedback, 
-        'rolevalue' : champ.role,
-        'year' : year_feedback, 
-        'yearvalue' : champ.year,
-        # 'skins' : skins_feedback,
-        'skinvalue' : champ.skins,
-        'answer' : answer_champ.name
-        }) 
+        'champion': feedback['champion'],
+        'name': champ.Name,
+        'Name': feedback['Name'],
+        'Gender': feedback['Gender'],
+        'gender_value': champ.Gender,
+        'Positions': feedback['Positions'],
+        'position_value': champ.Positions,
+        'RangeType': feedback['RangeType'],
+        'range_type_value': champ.RangeType,
+        'Regions': feedback['Regions'],
+        'regions_value': champ.Regions,
+        'year': feedback['year'],
+        'year_value': champ.year,
+        'image': champ.Image,
+        'answer': answer_champ.Name
+    })
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

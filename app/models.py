@@ -9,11 +9,13 @@ def load_user(id):
 # define a champion class that inherits from db.Model
 class Champion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), index=True, unique=True)
-    role = db.Column(db.String(64))
+    Image = db.Column(db.String(200), unique=True)
+    Name = db.Column(db.String(200), unique=True)
+    Gender = db.Column(db.String(20))
+    Positions = db.Column(db.String(20))
+    RangeType = db.Column(db.String(20))
+    Regions = db.Column(db.String(20))
     year = db.Column(db.Integer)
-    skins = db.Column(db.Integer)
-
 
     def repr(self):
         return '<Champion {}>'.format(self.name)
@@ -23,7 +25,6 @@ class User(UserMixin,db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
-    scores = db.relationship('Score', backref='user', uselist=False) 
 
     def repr(self):
         return '<User {}>'.format(self.username)
@@ -34,20 +35,7 @@ class User(UserMixin,db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def add_gamesWon(self, onlineGamesWon):
-        w = Score(onlineGamesWon=onlineGamesWon, user_id=self.id)
-        db.session.add(w)
-        db.session.commit()
-    
-    def add_gamesPlayed(self, onlineGamesPlayed):
-        w = Score(onlineGamesPlayed=onlineGamesPlayed, user_id=self.id)
-        db.session.add(w)
-        db.session.commit()
 
-    def add_avgGuesses(self, onlineAvgGuesses):
-        w = Score(onlineAvgGuesses=onlineAvgGuesses, user_id=self.id)
-        db.session.add(w)
-        db.session.commit()
 
 
 class Score(db.Model):
@@ -60,6 +48,23 @@ class Score(db.Model):
     def repr(self):
         return '{}'.format(self.score)
 
+
+    def add_gamesWon(self, onlineGamesWon):
+        w = Score(onlineGamesWon=onlineGamesWon, user_id=self.id)
+        db.session.add(w)
+        db.session.commit()
+
+
+    def add_gamesPlayed(self, onlineGamesPlayed):
+        w = Score(onlineGamesPlayed=onlineGamesPlayed, user_id=self.id)
+        db.session.add(w)
+        db.session.commit()
+
+
+    def add_avgGuesses(self, onlineAvgGuesses):
+        w = Score(onlineAvgGuesses=onlineAvgGuesses, user_id=self.id)
+        db.session.add(w)
+        db.session.commit()
 
 @login.user_loader
 def load_user(id):

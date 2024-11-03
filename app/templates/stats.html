@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 style="text-align: center;"> Welcome to {{current_user.username}} statistics</h1>
+<h1 style="text-align: center;">Your gameplay statistics</h1>
 <div style="text-align: center;">
+    <h2>User: {{current_user.username}}</h2>
 <p><b>Games Won:</b> {{onlineGamesWon}}</p>
 <p><b>Games Played:</b> {{onlineGamesPlayed}}</p>
 <p><b>Average Guesses:</b> {{onlineAvgGuesses}}</p>
