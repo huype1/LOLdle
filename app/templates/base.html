@@ -29,11 +29,11 @@
 
     <!-- Autocomplete function -->
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-<link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
+    <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
 
 
-    <!-- Set title of page -->
-    <title>{% block title %}{% endblock %}</title>
+    <title>Loldle</title>
+    <link rel="icon" href="{{ url_for('static', filename='png/loldle_logo.png') }}" type="image/icon type">
 </head>
 
 <!-- All other pages will inherit this body template -->
@@ -50,9 +50,6 @@
                 <i class='clickable-icon fa fa-sign-out'></i>
             </span>
             {% endif %}
-            <span onclick="openModal('info-modal', 'info-close')">
-                <i class="clickable-icon fa fa-info-circle" id="info"></i>
-            </span>
         </div>
 
         <div class="navmiddle">
@@ -62,12 +59,9 @@
         </div>
         <div class="navright">
             {% if current_user.is_anonymous %}
-            <span onclick="openModal('analytics-modal', 'analytics-close'); populate_analytics()">
-                <i class="clickable-icon fa fa-bar-chart" id="analytics"></i>
-            </span>
+            <div></div>
             {% else %}
-            <!-- Display personal statistics via stats db -->
-            <span onclick="stats_page()"><i class="clickable-icon fa fa-bar-chart"></i></span>
+            <span onclick="stats_page()"><i class="clickable-icon fa fa-user" aria-hidden="true"></i></span>
             {% endif %}
             <span onclick="openModal('settings-modal', 'settings-close')">
                 <i class="clickable-icon fa fa-cog" id="settings"></i>
@@ -75,59 +69,6 @@
         </div>
     </div>
 
-    <!-- The Info Modal -->
-    <div id="info-modal" class="modal">
-        <!-- Info Content -->
-        <div class="modal-content info-content">
-            <span class="close" id='info-close'>
-                <i class="clickable-icon fa fa-times-circle"></i>
-            </span>
-        <div style="text-align:center;">
-        <h2> HOW TO PLAY</h2>
-        </div>
-        <p> Attempt to guess the mystery League of Legends champion in 8 guesses. <br> <br>
-            After each guess, you will receive clues regarding the champion of the day, in comparison to your guess. <br><br>
-            Flex your League of Legends knowledge to your friends, by guessing the champion in as few turns as possible.
-        </p>
-        <p style = "font-weight: bold;"> <br>Example</p>
-        
-        <div style = "text-align: center;"><a><img src="./static/png/jinx.png" alt=""></a>
-            <p>This tells us that today's champion is not Jinx. It is also not a Marksman, not released in 2013 and has more than 11 skins </p>
-        </div>
-
-        <div style = "text-align: center;"><a><img src="./static/png/akali.png" alt=""></a>
-            <p>This tells us that today's champion is not Akali. However we know that it is an assassin, was released before 2010, and has less than 14 skins</p>
-        </div>
-        
-        <p style = "font-weight: bold;"><br><br>A new LOLdle will be available to guess each day!</p>
-        <p> Made by: 
-            <a href="https://github.com/cathy-ngo">@Cathy N</a>,
-            <a href="https://github.com/GlendleNguyen">@Glen N</a>,
-            <a href="https://github.com/Aaron-Lim00">@Aaron L</a>,
-            <a href="https://github.com/sean-alucaro">@Sean L</a>
-        </p>
-        </div>
-    </div>
-
-    <!-- The Analytics Modal -->
-    <div id="analytics-modal" class="modal">
-        <!-- Analytics Content -->
-        <div class="modal-content analytics-content">
-            <span class="close" id='analytics-close'>
-                <i class="clickable-icon fa fa-times-circle"></i>
-            </span>
-            <h2 style = "text-align: center;">Personal Statistics</h2>
-            <div id="analytics-container">
-                <div id="gamesplayed"></div>
-                <div id="gameswon"></div>
-                <div id="winpercentage"></div>
-                <div id="averageguesses"></div>
-            </div>
-            <div id="chart-container">
-                <canvas id="myChart"></canvas>
-            </div>
-        </div>
-    </div>
 
     <!-- The Settings Modal -->
     <div id="settings-modal" class="modal">
@@ -164,6 +105,7 @@
             <h2 style = "text-align: center;" id="victory-header">Victory!</h2>
             <div id="victoryScreen"></div>
             <button class="share" onclick="share()">Copy Your Results!</button>
+            <button class="play-again" onclick="newGame()">Play again</button>
         </div>
     </div>
 

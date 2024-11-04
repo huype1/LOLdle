@@ -1,33 +1,81 @@
-// Constant variables
-const results = document.getElementById('results');
-
 var count = 1;
 let victory = false;
+let currentChampionId;
+
+
+$.ajax({
+    url: '/stats',
+    method: 'POST',
+    contentType: 'application/json',
+    success: function(data) {
+        if (data.error) {
+            console.error(data.error);
+        } else {
+        console.log(data)
+            localStorage.setItem('gamesWon', data.onlineGamesWon);
+            localStorage.setItem('gamesPlayed', data.onlineGamesPlayed);
+            localStorage.setItem('totalGuesses', data.onlineAvgGuesses);
+        }
+    },
+    error: function(xhr, status, error) {
+        console.error('Error fetching user score:', error);
+    }
+});
+/**
+ * Initialize game state when document loads
+ * Selects random champion ID and stores it for the session
+ */
+function initializeGame() {
+    // Only initialize if there's no active game
+    if (!sessionStorage.getItem('currentChampionId')) {
+        const totalChampions = 50
+        currentChampionId = Math.floor(Math.random() * totalChampions) + 1;
+        sessionStorage.setItem('currentChampionId', currentChampionId);
+    } else {
+        currentChampionId = parseInt(sessionStorage.getItem('currentChampionId'));
+    }
+}
 
 /**
- * Submits AJAX form request with jquery
- * Return function is used to do client-side game logic and DOM manipulation
+ * Reset game state for a new game
  */
+function resetGame() {
+    sessionStorage.removeItem('currentChampionId');
+    count = 1;
+    victory = false;
+    initializeGame();
+    document.getElementById('submit').disabled = false;
+    document.getElementById('submit').style.backgroundColor = "";
+    document.getElementById('submit').style.cursor = "";
+    document.getElementById("input").placeholder = "GUESS 1 OUT OF 8";
+}
+function newGame() {
+    resetGame();
+    location.reload()
+}
+
+
 $(document).ready(function() {
+    // Initialize game when page loads
+    initializeGame();
+
     $('#input-form').on('submit', function(event) {
         guess = $('#input').val();
         guess = guess[0].toUpperCase() + guess.substring(1);
+
         $.ajax({
-            data : {
-                champion : guess,
+            data: {
+                champion: guess,
             },
-            type : 'POST',
-            url : '/process'
+            type: 'POST',
+            url: `/process?answer_index=${currentChampionId}`
         })
         .done(function(data) {
             if(count === 1){createFeedbackHeaders();}
             createFeedbackCards(data)
+
             if(data.champion === "correct") {
-                victory = true;
-                saveGuessCounter(count);
-                document.getElementById('submit').disabled = true;
-                document.getElementById('submit').style.backgroundColor = "rgba(64,64,64, 0.8)";
-                document.getElementById('submit').style.cursor = "not-allowed";
+
 
                 if(localStorage.gamesWon) {
                     localStorage.gamesWon = Number(localStorage.gamesWon) + 1;
@@ -46,21 +94,21 @@ $(document).ready(function() {
                 } else {
                     localStorage.totalGuesses = count;
                 }
+                updateStatsInDatabase();
 
                 $('#victory-image').fadeIn(1000)
                 setTimeout(function(){
-                    $('#victory-image').fadeOut(1000)
+                    victory = true;
+                    document.getElementById('submit').disabled = true;
+                    document.getElementById('submit').style.backgroundColor = "rgba(64,64,64, 0.8)";
+                    document.getElementById('submit').style.cursor = "not-allowed";
+                    $('#victory-image').fadeOut(800)
                     gameVictory(count-1);
                 }, 2500);
-                
+
             }
             else if(data.champion === "incorrect" && count === 8) {
                 let answer = data.answer;
-                saveGuessCounter(count);
-                document.getElementById('submit').disabled = true;
-                document.getElementById('submit').style.backgroundColor = "rgba(64,64,64, 0.8)";
-                document.getElementById('submit').style.cursor = "not-allowed";
-
                 if(localStorage.gamesPlayed) {
                     localStorage.gamesPlayed = Number(localStorage.gamesPlayed) + 1;
                 } else {
@@ -68,7 +116,7 @@ $(document).ready(function() {
                 }
 
                 if(localStorage.gamesWon) {
-                    // 
+                    // Keep existing value
                 } else {
                     localStorage.gamesWon = 0;
                 }
@@ -78,11 +126,17 @@ $(document).ready(function() {
                 } else {
                     localStorage.totalGuesses = count;
                 }
+                updateStatsInDatabase();
 
                 $('#defeat-image').fadeIn(1000)
                 setTimeout(function(){
-                    $('#defeat-image').fadeOut(1000)
+                    victory = true;
+                    document.getElementById('submit').disabled = true;
+                    document.getElementById('submit').style.backgroundColor = "rgba(64,64,64, 0.8)";
+                    document.getElementById('submit').style.cursor = "not-allowed";
+                    $('#defeat-image').fadeOut(800)
                     gameDefeat(answer);
+
                 }, 2500);
             }
             else {incrementGuess();}
@@ -90,35 +144,43 @@ $(document).ready(function() {
         // Prevent form submitting data twice
         event.preventDefault();
         $("#input-form")[0].reset();
-    })
-})
+    });
+});
 
-/**
- * Increment guess after each user guess
- * Updates placeholder text in game text input
- */
+function updateStatsInDatabase() {
+    // Prepare data to be sent in the request
+    const updatedStats = {
+        gamesWon: localStorage.getItem('gamesWon'),
+        gamesPlayed: localStorage.getItem('gamesPlayed'),
+        totalGuesses: localStorage.getItem('totalGuesses')
+    };
+
+    $.ajax({
+        url: '/update_stats',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(updatedStats),
+        success: function(response) {
+            console.log(response.message);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error updating stats:', error);
+        }
+    });
+}
 function incrementGuess() {
     count += 1;
     document.getElementById("input").placeholder = "GUESS " + count + " OUT OF 8";
 }
 
-/**
- * Clear the local storage on user machine
- */
 function clearStorage() {
-    // Clear localStorage items 
     if (confirm("WARNING: confirm statistics reset")) {
         localStorage.clear();
-    } else {
-        //
+        sessionStorage.clear();
+        resetGame();
     }
 }
 
-/**
- * Share button functionality
- * Uses local storage to create a formatted string
- * Adds formatted string to user clipboard
- */
 function share() {
     let winpercentage = (localStorage.gamesWon / localStorage.gamesPlayed).toFixed(2);
     let averageguesses = (localStorage.totalGuesses/localStorage.gamesPlayed).toFixed(2);
@@ -141,58 +203,3 @@ function share() {
     navigator.clipboard.writeText(result);
 }
 
-/**
- * A function to update localstorage statistics for a particular number of guesses
- * @param {*} count the number of guesses the user made
- */
-function saveGuessCounter(count) {
-    if (count === 1) {
-        if (localStorage.counterOne) {
-            localStorage.counterOne = Number(localStorage.counterOne) + 1;
-        } else {
-            localStorage.counterOne = 1;
-        }
-    } else if (count === 2) {
-        if (localStorage.counterTwo) {
-            localStorage.counterTwo = Number(localStorage.counterTwo) + 1;
-        } else {
-            localStorage.counterTwo = 1;
-        }
-    } else if (count === 3) {
-        if (localStorage.counterThree) {
-            localStorage.counterThree = Number(localStorage.counterThree) + 1;
-        } else {
-            localStorage.counterThree = 1;
-        }
-    } else if (count === 4) {
-        if (localStorage.counterFour) {
-            localStorage.counterFour = Number(localStorage.counterFour) + 1;
-        } else {
-            localStorage.counterFour = 1;
-        }
-    } else if (count === 5) {
-        if (localStorage.counterFive) {
-            localStorage.counterFive = Number(localStorage.counterFive) + 1;
-        } else {
-            localStorage.counterFive = 1;
-        }
-    } else if (count === 6) {
-        if (localStorage.counterSix) {
-            localStorage.counterSix = Number(localStorage.counterSix) + 1;
-        } else {
-            localStorage.counterSix = 1;
-        }
-    } else if (count === 7) {
-        if (localStorage.counterSeven) {
-            localStorage.counterSeven = Number(localStorage.counterSeven) + 1;
-        } else {
-            localStorage.counterSeven = 1;
-        }
-    } else if (count === 8) {
-        if (localStorage.counterEight) {
-            localStorage.counterEight = Number(localStorage.counterEight) + 1;
-        } else {
-            localStorage.counterEight = 1;
-        }
-    }
-}

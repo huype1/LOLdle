@@ -36,36 +36,13 @@ class User(UserMixin,db.Model):
         return check_password_hash(self.password_hash, password)
 
 
-
-
 class Score(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     onlineGamesWon = db.Column(db.Integer)
     onlineGamesPlayed = db.Column(db.Integer)
     onlineAvgGuesses = db.Column(db.Integer)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id')) 
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def repr(self):
-        return '{}'.format(self.score)
+    def __repr__(self):
+        return f'Score(id={self.id}, onlineGamesWon={self.onlineGamesWon}, onlineGamesPlayed={self.onlineGamesPlayed}, onlineAvgGuesses={self.onlineAvgGuesses}, user_id={self.user_id})'
 
-
-    def add_gamesWon(self, onlineGamesWon):
-        w = Score(onlineGamesWon=onlineGamesWon, user_id=self.id)
-        db.session.add(w)
-        db.session.commit()
-
-
-    def add_gamesPlayed(self, onlineGamesPlayed):
-        w = Score(onlineGamesPlayed=onlineGamesPlayed, user_id=self.id)
-        db.session.add(w)
-        db.session.commit()
-
-
-    def add_avgGuesses(self, onlineAvgGuesses):
-        w = Score(onlineAvgGuesses=onlineAvgGuesses, user_id=self.id)
-        db.session.add(w)
-        db.session.commit()
-
-@login.user_loader
-def load_user(id):
-    return User.query.get(int(id))

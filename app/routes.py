@@ -11,18 +11,12 @@ import random
 @app.route("/", methods=["POST", "GET"])
 def home():
     if request.method == "GET":
-        # Query data from the database for the champion list
         res = Champion.query.with_entities(Champion.Name, Champion.Image)
         print(res)
-        # Structuring the data into a list of dictionaries with Name and Image
         champions = [{"name": r.Name, "image":r.Image} for r in res]
 
-        # Redirect if user is not authenticated
         if not current_user.is_authenticated:
             return redirect('/login')
-
-        # Print champions list for debugging
-        print(champions)
 
     return render_template("index.html", champions=champions)
 
@@ -34,30 +28,18 @@ def index():
 # Process form 
 @app.route('/process', methods=['POST'])
 def process():
-    # Get data from request object - champion Name
+    answer_index = request.args.get("answer_index")
     champion = request.form
     champ2 = champion.to_dict()['champion']
 
-    # Find champion data in champion database
     champ = Champion.query.filter_by(Name=champ2).first()
 
-    # If champion isn't found, abort post request
     if champ is None:
         abort(403, "Forbidden: Champion not found")
 
-    # Retrieve a seeded answer based on days since epoch in db
-    # Improved version
-    total_champions = Champion.query.count()
-    if total_champions == 0:
-        abort(500, "No champions in database")
-
-    seed = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
-    random.seed(seed)
-    answer_index = random.randint(1, total_champions)
     answer_champ = Champion.query.get(answer_index)
 
 
-    # Check if answer_champ is None
     if answer_champ is None:
         abort(500, "Internal Server Error: Could not retrieve answer champion")
 
@@ -150,46 +132,73 @@ def register():
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
-        flash('Congratulations, you are now a registered user!')
+
+        # initialize user score
+        initial_score = Score(
+            onlineGamesWon=0,
+            onlineGamesPlayed=0,
+            onlineAvgGuesses=0,
+            user_id=user.id
+        )
+        db.session.add(initial_score)
+        db.session.commit()
+
+        flash('Congratulations, you are now registered!')
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
-@app.route('/result', methods=['GET','POST'])
-def result():
-    # Get data from request object - champion name
-    num_guesses = 0
-    champion = request.form
-    print(champion)
-    champ2 = champion.to_dict()['champion']
 
-    # Find champion data in champion database
-    champ = Champion.query.filter_by(name=champ2).first()
-
-    # Retrieve a seeded answer based on days since epoch in db
-    seed = (datetime.datetime.utcnow() - datetime.datetime(1970,1,1)).days
-    random.seed(seed)
-    answer_index = random.randint(1,159)
-    answer_champ = Champion.query.get(answer_index)
-
-    # Check whether guess is correct
-    if (champ.name == answer_champ.name):
-        num_guesses +=1
-        
-    else:
-        num_guesses +=1
-        
-    # Currently returns a JSON object with champion data
-    return render_template("result.html", guesses = num_guesses)
-
-@app.route('/stats', methods=['GET','POST'])
+@app.route('/stats', methods=['GET', 'POST'])
 def getStats():
     if current_user.is_authenticated:
-        user_id=current_user.id
-        onlineGamesWon= Score.query.filter_by(user_id=user_id).all()
-        onlineGamesPlayed= Score.query.filter_by(user_id=user_id).all()
-        onlineAvgGuesses= Score.query.filter_by(user_id=user_id).all()
+        user_id = current_user.id
+        userScore = Score.query.filter_by(user_id=user_id).first()
 
-        return render_template("stats.html", 
-        onlineGamesWon=onlineGamesWon, 
-        onlineGamesPlayed=onlineGamesPlayed,
-        onlineAvgGuesses=onlineAvgGuesses)
+        if userScore:
+            onlineGamesWon = userScore.onlineGamesWon
+            onlineGamesPlayed = userScore.onlineGamesPlayed
+            onlineAvgGuesses = userScore.onlineAvgGuesses
+
+            # Check if the request is AJAX (from JavaScript) or a regular page request
+            if request.is_json:
+                # Return JSON data for AJAX requests
+                return jsonify({
+                    "onlineGamesWon": onlineGamesWon,
+                    "onlineGamesPlayed": onlineGamesPlayed,
+                    "onlineAvgGuesses": onlineAvgGuesses
+                })
+            else:
+                # Render the template for regular page requests
+                return render_template("stats.html",
+                                       onlineGamesWon=onlineGamesWon,
+                                       onlineGamesPlayed=onlineGamesPlayed,
+                                       onlineAvgGuesses=onlineAvgGuesses)
+        else:
+            # Handle case where no score is found for the user
+            if request.is_json:
+                return jsonify({"error": "No scores found."}), 404
+            else:
+                return render_template("stats.html", message="No scores found.")
+    else:
+        # Redirect to login if user is not authenticated
+        return redirect(url_for('login'))
+
+@app.route('/update_stats', methods=['POST'])
+def updateStats():
+    if current_user.is_authenticated:
+        user_id = current_user.id
+        userScore = Score.query.filter_by(user_id=user_id).first()
+
+        if userScore:
+            data = request.get_json()
+            # Update fields if provided in the request
+            userScore.onlineGamesWon = data.get('gamesWon', userScore.onlineGamesWon)
+            userScore.onlineGamesPlayed = data.get('gamesPlayed', userScore.onlineGamesPlayed)
+            userScore.onlineAvgGuesses = data.get('totalGuesses', userScore.onlineAvgGuesses)
+
+            db.session.commit()
+            return jsonify({"message": "Stats updated successfully"})
+        else:
+            return jsonify({"error": "Score not found"}), 404
+    else:
+        return jsonify({"error": "Unauthorized"}), 401

@@ -3,6 +3,8 @@ function login_page() {
 }
 
 function logout_page() {
+    localStorage.clear();
+    sessionStorage.clear();
     location.href = "/logout";
 }
 

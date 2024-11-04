@@ -199,8 +199,8 @@ input:focus{
 #submit {
   cursor: pointer;
   padding: 7px;
-  background-color: #F4F4F3;
-  border: 2px solid #F4F4F3;
+  background-color: gray;
+  border: 2px solid black;
   border-radius: 10px;
   color: #021519;
   text-align: center;
