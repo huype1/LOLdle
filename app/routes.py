@@ -194,7 +194,7 @@ def updateStats():
             # Update fields if provided in the request
             userScore.onlineGamesWon = data.get('gamesWon', userScore.onlineGamesWon)
             userScore.onlineGamesPlayed = data.get('gamesPlayed', userScore.onlineGamesPlayed)
-            userScore.onlineAvgGuesses = data.get('totalGuesses', userScore.onlineAvgGuesses)
+            userScore.onlineAvgGuesses = data.get('averageGuess', userScore.onlineAvgGuesses)
 
             db.session.commit()
             return jsonify({"message": "Stats updated successfully"})

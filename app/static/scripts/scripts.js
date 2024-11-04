@@ -14,7 +14,7 @@ $.ajax({
         console.log(data)
             localStorage.setItem('gamesWon', data.onlineGamesWon);
             localStorage.setItem('gamesPlayed', data.onlineGamesPlayed);
-            localStorage.setItem('totalGuesses', data.onlineAvgGuesses);
+            localStorage.setItem('averageGuess', data.onlineAvgGuesses);
         }
     },
     error: function(xhr, status, error) {
@@ -75,99 +75,39 @@ $(document).ready(function() {
             createFeedbackCards(data)
 
             if(data.champion === "correct") {
-
-
-                if(localStorage.gamesWon) {
-                    localStorage.gamesWon = Number(localStorage.gamesWon) + 1;
-                } else {
-                    localStorage.gamesWon = 1;
-                }
-
-                if(localStorage.gamesPlayed) {
-                    localStorage.gamesPlayed = Number(localStorage.gamesPlayed) + 1;
-                } else {
-                    localStorage.gamesPlayed = 1;
-                }
-
-                if(localStorage.totalGuesses) {
-                    localStorage.totalGuesses = Number(localStorage.totalGuesses) + count;
-                } else {
-                    localStorage.totalGuesses = count;
-                }
+                updateLocalStorageStats(true, count);
                 updateStatsInDatabase();
 
-                $('#victory-image').fadeIn(1000)
-                setTimeout(function(){
+                $('#victory-image').fadeIn(1000);
+                setTimeout(function() {
                     victory = true;
-                    document.getElementById('submit').disabled = true;
-                    document.getElementById('submit').style.backgroundColor = "rgba(64,64,64, 0.8)";
-                    document.getElementById('submit').style.cursor = "not-allowed";
-                    $('#victory-image').fadeOut(800)
-                    gameVictory(count-1);
+                    $('#submit').prop('disabled', true).css({ backgroundColor: "rgba(64,64,64, 0.8)", cursor: "not-allowed" });
+                    $('#victory-image').fadeOut(800);
+                    gameVictory(count - 1);
                 }, 2500);
 
-            }
-            else if(data.champion === "incorrect" && count === 8) {
+            } else if(data.champion === "incorrect" && count === 8) {
                 let answer = data.answer;
-                if(localStorage.gamesPlayed) {
-                    localStorage.gamesPlayed = Number(localStorage.gamesPlayed) + 1;
-                } else {
-                    localStorage.gamesPlayed = 1;
-                }
 
-                if(localStorage.gamesWon) {
-                    // Keep existing value
-                } else {
-                    localStorage.gamesWon = 0;
-                }
-
-                if(localStorage.totalGuesses) {
-                    localStorage.totalGuesses = Number(localStorage.totalGuesses) + count - 1;
-                } else {
-                    localStorage.totalGuesses = count;
-                }
+                updateLocalStorageStats(false, count);
                 updateStatsInDatabase();
 
-                $('#defeat-image').fadeIn(1000)
-                setTimeout(function(){
+                $('#defeat-image').fadeIn(1000);
+                setTimeout(function() {
                     victory = true;
-                    document.getElementById('submit').disabled = true;
-                    document.getElementById('submit').style.backgroundColor = "rgba(64,64,64, 0.8)";
-                    document.getElementById('submit').style.cursor = "not-allowed";
-                    $('#defeat-image').fadeOut(800)
+                    $('#submit').prop('disabled', true).css({ backgroundColor: "rgba(64,64,64, 0.8)", cursor: "not-allowed" });
+                    $('#defeat-image').fadeOut(800);
                     gameDefeat(answer);
-
                 }, 2500);
+            } else {
+                incrementGuess();
             }
-            else {incrementGuess();}
-        })
-        // Prevent form submitting data twice
+        });
         event.preventDefault();
         $("#input-form")[0].reset();
     });
 });
 
-function updateStatsInDatabase() {
-    // Prepare data to be sent in the request
-    const updatedStats = {
-        gamesWon: localStorage.getItem('gamesWon'),
-        gamesPlayed: localStorage.getItem('gamesPlayed'),
-        totalGuesses: localStorage.getItem('totalGuesses')
-    };
-
-    $.ajax({
-        url: '/update_stats',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(updatedStats),
-        success: function(response) {
-            console.log(response.message);
-        },
-        error: function(xhr, status, error) {
-            console.error('Error updating stats:', error);
-        }
-    });
-}
 function incrementGuess() {
     count += 1;
     document.getElementById("input").placeholder = "GUESS " + count + " OUT OF 8";
@@ -183,7 +123,7 @@ function clearStorage() {
 
 function share() {
     let winpercentage = (localStorage.gamesWon / localStorage.gamesPlayed).toFixed(2);
-    let averageguesses = (localStorage.totalGuesses/localStorage.gamesPlayed).toFixed(2);
+    let averageguesses = localStorage.averageGuess;
     let gamesplayed = localStorage.gamesPlayed;
     let gameswon = localStorage.gamesWon;
     let guesses = count;
@@ -202,4 +142,42 @@ function share() {
 
     navigator.clipboard.writeText(result);
 }
+function updateStatsInDatabase() {
+    // Prepare data to be sent in the request
+    const updatedStats = {
+        gamesWon: localStorage.getItem('gamesWon'),
+        gamesPlayed: localStorage.getItem('gamesPlayed'),
+        averageGuess: localStorage.getItem('averageGuess'),
+    };
+
+    $.ajax({
+        url: '/update_stats',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(updatedStats),
+        success: function(response) {
+            console.log(response.message);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error updating stats:', error);
+        }
+    });
+}
+function updateLocalStorageStats(isWin, guessCount) {
+    // Update games won
+    if (isWin) {
+        localStorage.gamesWon = Number(localStorage.gamesWon || 0) + 1;
+    }
+
+    // Update games played
+    localStorage.gamesPlayed = Number(localStorage.gamesPlayed || 0) + 1;
+
+    // Update average guess
+    const gamesPlayed = Number(localStorage.gamesPlayed);
+    const previousAvg = Number(localStorage.averageGuess || 0);
+    localStorage.averageGuess = ((previousAvg * (gamesPlayed - 1) + guessCount) / gamesPlayed).toFixed(2);
+}
+
+
+
 
