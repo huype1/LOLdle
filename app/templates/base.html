@@ -74,24 +74,42 @@
     <div id="settings-modal" class="modal">
         <!-- Settings Content -->
         <div class="modal-content settings-content">
-        <span class="close" id='settings-close'>
-            <i class="clickable-icon fa fa-times-circle"></i>
-        </span>
-            <h2> Settings </h2>
-            <div class="flex-container">
-                <h4>Light Mode</h4>
-                <label class="switch">
-                    <input type="checkbox" id="light-switch" onclick="lightMode()">
-                    <span class="slider round"></span>
-                </label>
-            </div>
+            <span class="close" id='settings-close'>
+                <i class="clickable-icon fa fa-times-circle"></i>
+            </span>
+            <h2>User Settings</h2>
+            
+            <form class="settings-form" method="post" action="{{ url_for('update_settings') }}">
+                <div class="settings-group">
+                    <label>Username</label>
+                    <input type="text" name="username" value="{{ current_user.username }}" readonly>
+                </div>
+                
+                <div class="settings-group">
+                    <label>Email</label>
+                    <input type="email" name="email" value="{{ current_user.email }}">
+                </div>
+                
+                <div class="settings-group">
+                    <label>Current Password</label>
+                    <input type="password" name="current_password">
+                </div>
+                
+                <div class="settings-group">
+                    <label>New Password</label>
+                    <input type="password" name="new_password">
+                </div>
+                
+                <div class="settings-group">
+                    <label>Confirm New Password</label>
+                    <input type="password" name="confirm_password">
+                </div>
 
-            <div class="flex-container">
-                <h4>Clear Local Storage</h4>
-                <label class="switch">
-                    <button class="clearBtn" id="clearBtn" onclick="clearStorage()">Clear</button>
-                </label>
-            </div>
+                <div class="settings-actions">
+                    <button type="submit" class="save-btn">Save Changes</button>
+                    <button type="button" class="delete-btn" onclick="confirmDeleteAccount()">Delete Account</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -135,6 +153,7 @@
             <h2 style = "text-align: center;" id ="defeat-header">Defeat!</h2>
             <div id="defeatScreen"></div>
             <button class="share" onclick="share()">Copy Your Results!</button>
+            <button class="play-again" onclick="newGame()">Play again</button>
         </div>
     </div>
 
@@ -144,3 +163,35 @@
 </body>
 
 </html>
+<script>
+    function confirmDeleteAccount() {
+        if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+            // Tạo và gửi form POST request để xóa tài khoản
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/delete_account';
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    // Hàm mở modal settings
+    function openModal(modalId, closeId) {
+        var modal = document.getElementById(modalId);
+        var span = document.getElementById(closeId);
+        modal.style.display = "block";
+
+        // Đóng modal khi click vào nút close
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        // Đóng modal khi click ra ngoài
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    }
+</script>
+
