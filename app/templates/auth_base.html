@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Linking css -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    
+    <!-- Linking Javascript -->
+    <script src="{{ url_for('static', filename='scripts/routing.js') }}"></script>
+
+    <title>Loldle</title>
+    <link rel="icon" href="{{ url_for('static', filename='png/loldle_logo.png') }}" type="image/icon type">
+</head>
+
+<body>
+    <!-- Simplified Navbar -->
+    <div class="navbar">
+        <div class="navleft">
+            {% if current_user.is_anonymous %}
+            <span onclick="login_page()">
+                <i class='clickable-icon fa fa-sign-in'></i>
+            </span>
+            {% else %}
+            <span onclick="logout_page()">
+                <i class='clickable-icon fa fa-sign-out'></i>
+            </span>
+            {% endif %}
+        </div>
+
+        <div class="navmiddle">
+            <div id="logo-box">
+                <img id="logo" src="../static/png/loldle_logo.png" alt="LoLdle">
+            </div>
+        </div>
+        <div class="navright">
+        </div>
+    </div>
+
+    {% block content %}{% endblock %}
+</body>
+</html>
