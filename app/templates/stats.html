@@ -1,10 +1,59 @@
 {% extends "base.html" %}
+
 {% block content %}
-<h1 style="text-align: center;">Your gameplay statistics</h1>
-<div style="text-align: center;">
-    <h2>User: {{current_user.username}}</h2>
-<p><b>Games Won:</b> {{onlineGamesWon}}</p>
-<p><b>Games Played:</b> {{onlineGamesPlayed}}</p>
-<p><b>Average Guesses:</b> {{onlineAvgGuesses}}</p>
+<div class="stats-container">
+    <!-- Phần stats cá nhân -->
+    <div class="stats-section">
+        <h2>Your Stats</h2>
+        <div class="stats-grid">
+            <div class="stat-box">
+                <span class="stat-number">{{ onlineGamesPlayed }}</span>
+                <span class="stat-label">Games Played</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-number">{{ onlineGamesWon }}</span>
+                <span class="stat-label">Games Won</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-number">{{ "%.1f"|format(onlineGamesWon / onlineGamesPlayed * 100 if onlineGamesPlayed > 0 else 0) }}%</span>
+                <span class="stat-label">Win Rate</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-number">{{ "%.1f"|format(onlineAvgGuesses if onlineAvgGuesses else 0) }}</span>
+                <span class="stat-label">Avg Guesses</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phần bảng xếp hạng -->
+    <div class="leaderboard-section">
+        <h2>Leaderboard</h2>
+        <div class="leaderboard-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Player</th>
+                        <th>Games Won</th>
+                        <th>Games Played</th>
+                        <th>Win Rate</th>
+                        <th>Avg Guesses</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for player in players %}
+                    <tr {% if current_user.username == player.username %}class="current-user"{% endif %}>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ player.username }}</td>
+                        <td>{{ player.games_won }}</td>
+                        <td>{{ player.games_played }}</td>
+                        <td>{{ "%.1f"|format(player.games_won / player.games_played * 100 if player.games_played > 0 else 0) }}%</td>
+                        <td>{{ "%.1f"|format(player.avg_guesses if player.avg_guesses else 0) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}
