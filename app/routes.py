@@ -6,6 +6,7 @@ from app.forms import LoginForm, RegistrationForm
 from werkzeug.urls import url_parse
 import datetime
 import random
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Retrieves champion list from database for autocomplete form
 @app.route("/", methods=["POST", "GET"])
@@ -151,36 +152,49 @@ def register():
 @app.route('/stats', methods=['GET', 'POST'])
 def getStats():
     if current_user.is_authenticated:
+        # Lấy thông tin điểm của người dùng hiện tại
         user_id = current_user.id
         userScore = Score.query.filter_by(user_id=user_id).first()
 
-        if userScore:
-            onlineGamesWon = userScore.onlineGamesWon
-            onlineGamesPlayed = userScore.onlineGamesPlayed
-            onlineAvgGuesses = userScore.onlineAvgGuesses
+        # Lấy danh sách tất cả người chơi và điểm số của họ
+        all_scores = db.session.query(User, Score).join(Score).order_by(Score.onlineGamesWon.desc()).all()
+        
+        players = []
+        for user, score in all_scores:
+            player_data = {
+                'username': user.username,
+                'games_won': score.onlineGamesWon,
+                'games_played': score.onlineGamesPlayed,
+                'avg_guesses': score.onlineAvgGuesses
+            }
+            players.append(player_data)
 
-            # Check if the request is AJAX (from JavaScript) or a regular page request
+        if userScore:
+            # Nếu là AJAX request
             if request.is_json:
-                # Return JSON data for AJAX requests
                 return jsonify({
-                    "onlineGamesWon": onlineGamesWon,
-                    "onlineGamesPlayed": onlineGamesPlayed,
-                    "onlineAvgGuesses": onlineAvgGuesses
+                    "onlineGamesWon": userScore.onlineGamesWon,
+                    "onlineGamesPlayed": userScore.onlineGamesPlayed,
+                    "onlineAvgGuesses": userScore.onlineAvgGuesses,
+                    "players": players
                 })
+            # Nếu là page request bình thường
             else:
-                # Render the template for regular page requests
                 return render_template("stats.html",
-                                       onlineGamesWon=onlineGamesWon,
-                                       onlineGamesPlayed=onlineGamesPlayed,
-                                       onlineAvgGuesses=onlineAvgGuesses)
+                                    onlineGamesWon=userScore.onlineGamesWon,
+                                    onlineGamesPlayed=userScore.onlineGamesPlayed,
+                                    onlineAvgGuesses=userScore.onlineAvgGuesses,
+                                    players=players)
         else:
-            # Handle case where no score is found for the user
+            # Xử lý trường hợp không tìm thấy điểm số
             if request.is_json:
                 return jsonify({"error": "No scores found."}), 404
             else:
-                return render_template("stats.html", message="No scores found.")
+                return render_template("stats.html", 
+                                    message="No scores found.",
+                                    players=players)
     else:
-        # Redirect to login if user is not authenticated
+        # Chuyển hướng đến trang đăng nhập nếu chưa xác thực
         return redirect(url_for('login'))
 
 @app.route('/update_stats', methods=['POST'])
@@ -202,3 +216,64 @@ def updateStats():
             return jsonify({"error": "Score not found"}), 404
     else:
         return jsonify({"error": "Unauthorized"}), 401
+
+@app.route('/update_settings', methods=['POST'])
+@login_required
+def update_settings():
+    if request.method == 'POST':
+        try:
+            # Lấy dữ liệu từ form
+            email = request.form.get('email')
+            current_password = request.form.get('current_password')
+            new_password = request.form.get('new_password')
+            confirm_password = request.form.get('confirm_password')
+
+            # Kiểm tra nếu có thay đổi email
+            if email and email != current_user.email:
+                # Kiểm tra email đã tồn tại chưa
+                existing_user = User.query.filter_by(email=email).first()
+                if existing_user and existing_user != current_user:
+                    flash('Email already exists', 'error')
+                    return redirect(url_for('home'))
+                current_user.email = email
+                db.session.add(current_user)
+
+            # Kiểm tra và cập nhật mật khẩu
+            if current_password and new_password:
+                # Kiểm tra mật khẩu hiện tại
+                if not current_user.check_password(current_password):
+                    flash('Current password is incorrect', 'error')
+                    return redirect(url_for('home'))
+                
+                # Kiểm tra mật khẩu mới và xác nhận
+                if new_password != confirm_password:
+                    flash('New passwords do not match', 'error')
+                    return redirect(url_for('home'))
+                
+                # Cập nhật mật khẩu mới
+                current_user.set_password(new_password)
+                db.session.add(current_user)
+
+            # Lưu các thay đổi vào database
+            db.session.commit()
+            flash('Settings updated successfully', 'success')
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating settings: {str(e)}', 'error')
+            
+        return redirect(url_for('home'))
+
+@app.route('/delete_account', methods=['POST'])
+@login_required
+def delete_account():
+    try:
+        # Xóa user từ database
+        db.session.delete(current_user)
+        db.session.commit()
+        flash('Your account has been deleted', 'success')
+        return redirect(url_for('login'))
+    except:
+        db.session.rollback()
+        flash('Error deleting account', 'error')
+        return redirect(url_for('home'))
