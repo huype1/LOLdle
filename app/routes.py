@@ -120,7 +120,7 @@ def login():
 @app.route('/count', methods=['GET'])
 def numberOfChampions():
     championCount = Champion.query().count()
-    print('Champions')
+    print(championCount)
     return jsonify({'count': championCount})
 
 

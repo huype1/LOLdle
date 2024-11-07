@@ -26,26 +26,14 @@ $.ajax({
  * Selects random champion ID and stores it for the session
  */
 function initializeGame() {
-    // Only initialize if there's no active game
     if (!sessionStorage.getItem('currentChampionId')) {
-        // AJAX call to get the total count of champions
-        $.ajax({
-            url: "/count",
-            method: "GET",
-            success: function(response) {
-                const totalChampions = response.count;
-                const currentChampionId = Math.floor(Math.random() * totalChampions) + 1;
-                sessionStorage.setItem('currentChampionId', currentChampionId);
-            },
-            error: function() {
-                console.error("Failed to fetch the champion count.");
-            }
-        });
+        const totalChampions = 50
+        currentChampionId = Math.floor(Math.random() * totalChampions) + 1;
+        sessionStorage.setItem('currentChampionId', currentChampionId);
     } else {
         currentChampionId = parseInt(sessionStorage.getItem('currentChampionId'));
     }
 }
-
 
 /**
  * Reset game state for a new game
