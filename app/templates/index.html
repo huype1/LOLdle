@@ -8,7 +8,7 @@
     <!-- Main area for players to make their guess -->
     <form action="/index" class="input-form" id="input-form" method="POST">
         <div class="inputbox">
-            <h3>DECLARE YOUR CHAMPION!</h3>
+            <h3>PICK A CHAMPION!</h3>
             <div class="guess">
                 <input type="text" placeholder="GUESS 1 OF 8" id="input" name="input" />
                 <!-- Script to display menu of champions-->
@@ -34,6 +34,7 @@
         minLength: 1,
         select: function(event, ui) {
             $("#input").val(ui.item.value);
+            checkInput();
             return false;
         }
     }).autocomplete("widget").menu({
@@ -51,6 +52,13 @@
             `)
             .appendTo(ul);
     };
+
+    checkInput();
+    $("#input").on("input", checkInput);
+
+    function checkInput() {
+    $(#submit).prop("disabled", !$("#input").val().trim();
+    }
 });
                 </script>
                 <button type="submit" id="submit" >LOCK IN</button>

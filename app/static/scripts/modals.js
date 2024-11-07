@@ -28,35 +28,34 @@
         }
     }
 }
-
 /**
  * Victory modal functionality
  * @param {*} guesses number of guesses player made
  */
- function gameVictory(guesses) {
+function gameVictory(guesses) {
     var guessesMadeDiv = $("<div></div>");
     let totalguesses = guesses + 1;
-    var guessesMade = fontColor($("<span></span>").text('You won in ' + totalguesses + ' guesses.'));
+    var guessesMade = $("<span></span>").text('You won in ' + totalguesses + ' guesses.').css("color", "white");
     guessesMadeDiv.append(guessesMade);
     $("#victoryScreen").append(guessesMadeDiv);
 
     var gamesWonDiv = $("<div></div>");
-    var gamesWon = fontColor($("<span></span>").text('Total games won: ' + localStorage.gamesWon));
+    var gamesWon = $("<span></span>").text('Total games won: ' + localStorage.gamesWon).css("color", "white");
     gamesWonDiv.append(gamesWon);
     $("#victoryScreen").append(gamesWonDiv);
 
     var gamesPlayedDiv = $("<div></div>");
-    var gamesPlayed = fontColor($("<span></span>").text('Total games played: ' + localStorage.gamesPlayed));
+    var gamesPlayed = $("<span></span>").text('Total games played: ' + localStorage.gamesPlayed).css("color", "white");
     gamesPlayedDiv.append(gamesPlayed);
     $("#victoryScreen").append(gamesPlayedDiv);
 
     var gamesWRDiv = $("<div></div>");
-    var gamesWR = fontColor($("<span></span>").text('Win rate: ' + (localStorage.gamesWon/localStorage.gamesPlayed*100).toFixed(2) + '%'));
+    var gamesWR = $("<span></span>").text('Win rate: ' + (localStorage.gamesWon / localStorage.gamesPlayed * 100).toFixed(2) + '%').css("color", "white");
     gamesWRDiv.append(gamesWR);
     $("#victoryScreen").append(gamesWRDiv);
 
     var averageGuessesDiv = $("<div></div>");
-    var averageGuesses = fontColor($("<span></span>").text('Average guesses: ' + (localStorage.averageGuess) ));
+    var averageGuesses = $("<span></span>").text('Average guesses: ' + localStorage.averageGuess).css("color", "white");
     averageGuessesDiv.append(averageGuesses);
     $("#victoryScreen").append(averageGuessesDiv);
 
@@ -68,32 +67,32 @@
  */
 function gameDefeat(answer) {
     var guessesMadeDiv = $("<div></div>");
-    var guessesMade = fontColor($("<span></span>").text('You failed to guess the champion.'));
+    var guessesMade = $("<span></span>").text('You failed to guess the champion.').css("color", "white");
     guessesMadeDiv.append(guessesMade);
     $("#defeatScreen").append(guessesMadeDiv);
 
     var answerDiv = $("<div></div>");
-    var answer = fontColor($("<span></span>").text('The answer was: ' + answer));
-   answerDiv.append(answer);
+    var answerText = $("<span></span>").text('The answer was: ' + answer).css("color", "white");
+    answerDiv.append(answerText);
     $("#defeatScreen").append(answerDiv);
 
     var gamesWonDiv = $("<div></div>");
-    var gamesWon = fontColor($("<span></span>").text('Total games won: ' + localStorage.gamesWon));
+    var gamesWon = $("<span></span>").text('Total games won: ' + localStorage.gamesWon).css("color", "white");
     gamesWonDiv.append(gamesWon);
     $("#defeatScreen").append(gamesWonDiv);
 
     var gamesPlayedDiv = $("<div></div>");
-    var gamesPlayed = fontColor($("<span></span>").text('Total games played: ' + localStorage.gamesPlayed));
+    var gamesPlayed = $("<span></span>").text('Total games played: ' + localStorage.gamesPlayed).css("color", "white");
     gamesPlayedDiv.append(gamesPlayed);
     $("#defeatScreen").append(gamesPlayedDiv);
 
     var gamesWRDiv = $("<div></div>");
-    var gamesWR = fontColor($("<span></span>").text('Win rate: ' + (localStorage.gamesWon/localStorage.gamesPlayed*100).toFixed(2) + '%'));
+    var gamesWR = $("<span></span>").text('Win rate: ' + (localStorage.gamesWon / localStorage.gamesPlayed * 100).toFixed(2) + '%').css("color", "white");
     gamesWRDiv.append(gamesWR);
     $("#defeatScreen").append(gamesWRDiv);
 
     var averageGuessesDiv = $("<div></div>");
-    var averageGuesses = fontColor($("<span></span>").text('Average guesses: ' + (localStorage.averageGuess) ));
+    var averageGuesses = $("<span></span>").text('Average guesses: ' + localStorage.averageGuess).css("color", "white");
     averageGuessesDiv.append(averageGuesses);
     $("#defeatScreen").append(averageGuessesDiv);
 

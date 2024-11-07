@@ -117,6 +117,12 @@ def login():
             next_page = url_for('home')
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
+@app.route('/count', methods=['GET'])
+def numberOfChampions():
+    championCount = Champion.query().count()
+    print('Champions')
+    return jsonify({'count': championCount})
+
 
 @app.route('/logout')
 def logout():
@@ -157,18 +163,22 @@ def getStats():
         userScore = Score.query.filter_by(user_id=user_id).first()
 
         # Lấy danh sách tất cả người chơi và điểm số của họ
-        all_scores = db.session.query(User, Score).join(Score).order_by(Score.onlineGamesWon.desc()).all()
-        
+        all_scores = db.session.query(User, Score).join(Score).order_by(Score.onlineGamesWon.desc(), Score.onlineAvgGuesses.asc()).all()
+        userRank = None
         players = []
-        for user, score in all_scores:
-            player_data = {
-                'username': user.username,
-                'games_won': score.onlineGamesWon,
-                'games_played': score.onlineGamesPlayed,
-                'avg_guesses': score.onlineAvgGuesses
-            }
-            players.append(player_data)
-
+        for rank, (user, score) in enumerate(all_scores, start=1):
+            if rank <= 10:
+                player_data = {
+                    'username': user.username,
+                    'games_won': score.onlineGamesWon,
+                    'games_played': score.onlineGamesPlayed,
+                    'avg_guesses': score.onlineAvgGuesses
+                }
+                players.append(player_data)
+            if user.id == user_id:
+                userRank = rank
+                if rank > 10:
+                    break
         if userScore:
             # Nếu là AJAX request
             if request.is_json:
@@ -176,6 +186,7 @@ def getStats():
                     "onlineGamesWon": userScore.onlineGamesWon,
                     "onlineGamesPlayed": userScore.onlineGamesPlayed,
                     "onlineAvgGuesses": userScore.onlineAvgGuesses,
+                    "rank": userRank,
                     "players": players
                 })
             # Nếu là page request bình thường
@@ -184,6 +195,7 @@ def getStats():
                                     onlineGamesWon=userScore.onlineGamesWon,
                                     onlineGamesPlayed=userScore.onlineGamesPlayed,
                                     onlineAvgGuesses=userScore.onlineAvgGuesses,
+                                    rank = userRank,
                                     players=players)
         else:
             # Xử lý trường hợp không tìm thấy điểm số
