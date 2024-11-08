@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}LoLdle{% endblock %}
+
+{% block content %}
+<form action="" method="post" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+
+    <div class="form-group">
+        {{ form.Name.label }}
+        {{ form.Name }}
+        {% for error in form.Name.errors %}
+        <span class="error-message">{{ error }}</span>
+        {% endfor %}
+    </div>
+
+    <div class="form-group">
+        {{ form.image_file.label }}
+        {{ form.image_file }}
+        {% for error in form.image_file.errors %}
+        <span class="error-message">{{ error }}</span>
+        {% endfor %}
+    </div>
+
+
+    <div class="form-select form-group" >
+        <div class="">
+        {{ form.Gender.label }}
+        {{ form.Gender }}
+        {% for error in form.Gender.errors %}
+        <span class="error-message">{{ error }}</span>
+        {% endfor %}
+    </div>
+
+    <div class="">
+        {{ form.Positions.label }}
+        {{ form.Positions }}
+        {% for error in form.Positions.errors %}
+        <span class="error-message">{{ error }}</span>
+        {% endfor %}
+    </div>
+
+    <div class="">
+        {{ form.RangeType.label }}
+        {{ form.RangeType }}
+        {% for error in form.RangeType.errors %}
+        <span class="error-message">{{ error }}</span>
+        {% endfor %}
+    </div>
+    </div>
+
+
+    <div class="form-group">
+        {{ form.Regions.label }}
+        {{ form.Regions }}
+        {% for error in form.Regions.errors %}
+        <span class="error-message">{{ error }}</span>
+        {% endfor %}
+    </div>
+
+    <div class="form-group">
+        {{ form.year.label }}
+        {{ form.year }}
+        {% for error in form.year.errors %}
+        <span class="error-message">{{ error }}</span>
+        {% endfor %}
+    </div>
+
+    <div class="form-group">
+        {{ form.submit() }}
+    </div>
+</form>
+
+{% endblock %}

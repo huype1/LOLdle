@@ -357,6 +357,7 @@ a {
     max-width: 350px;
     margin-left: auto;
     margin-right: auto;
+    margin-top: 3px;
 }
 
 .form-group label {
@@ -417,7 +418,7 @@ a {
     margin-right: 8px;
     vertical-align: middle;
 }
-
+.form-select { display: flex; align-items: flex-start; } .form-select> div { margin-right: 20px; /* Adjust spacing between elements */ }
 .remember-me {
     display: flex;
     align-items: center;

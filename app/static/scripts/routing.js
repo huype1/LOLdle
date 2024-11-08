@@ -11,3 +11,7 @@ function logout_page() {
 function stats_page(){
     location.href ="/stats";
 }
+function add_champion() {
+    sessionStorage.clear();
+    location.href = "/champion";
+}

@@ -1,8 +1,12 @@
+import os
+
+from werkzeug.utils import secure_filename
+
 from app import app, db
 from flask_login import current_user, login_required, login_user, logout_user
 from app.models import Champion, User, Score
-from flask import render_template, url_for, request, jsonify, flash, redirect, abort
-from app.forms import LoginForm, RegistrationForm
+from flask import render_template, url_for, request, jsonify, flash, redirect, abort, current_app
+from app.forms import LoginForm, RegistrationForm, championForm
 from werkzeug.urls import url_parse
 import datetime
 import random
@@ -278,6 +282,38 @@ def update_settings():
             
         return redirect(url_for('home'))
 
+@app.route('/champion', methods=['GET', 'POST'])
+@login_required
+def addChampion():
+    if not current_user.is_authenticated or current_user.role != 1:
+        return redirect(url_for('home'))
+
+    form = championForm()
+    if form.validate_on_submit():
+        image_file = form.image_file.data
+        filename = secure_filename(image_file.filename)
+
+        image_path = os.path.join(current_app.root_path, 'static\png', filename)
+        image_file.save(image_path)
+
+        new_champion = Champion(
+            Name=form.Name.data,
+            Image='png/' + filename,
+            Gender=form.Gender.data,
+            Positions=form.Positions.data,
+            RangeType=form.RangeType.data,
+            Regions=form.Regions.data,
+            year=form.year.data
+        )
+        db.session.add(new_champion)
+        db.session.commit()
+
+        flash("Champion added successfully!", "success")
+        return redirect(url_for('home'))
+
+    return render_template('add_champion.html', form=form)
+
+
 @app.route('/delete_account', methods=['POST'])
 @login_required
 def delete_account():
@@ -290,4 +326,4 @@ def delete_account():
     except:
         db.session.rollback()
         flash('Error deleting account', 'error')
-        return redirect(url_for('home'))
+        return redirect(url_for(''))
