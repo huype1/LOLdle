@@ -9,6 +9,7 @@ import random
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Retrieves champion list from database for autocomplete form
+
 @app.route("/", methods=["POST", "GET"])
 def home():
     if request.method == "GET":
@@ -21,7 +22,8 @@ def home():
 
     return render_template("index.html", champions=champions)
 
-# Route for the home page. The majority of the page will be displayed here. 
+# Route for the home page. The majority of the page will be displayed here.
+
 @app.route('/index')
 def index():
     return render_template('index.html')
