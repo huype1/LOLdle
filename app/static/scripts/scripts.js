@@ -39,7 +39,7 @@ function initializeGame() {
 //                    console.error("Failed to fetch the champion count.");
 //                }
 //            });
-        const totalChampions = 50
+        const totalChampions = 51
         currentChampionId = Math.floor(Math.random() * totalChampions) + 1;
         sessionStorage.setItem('currentChampionId', currentChampionId);
     } else {
@@ -92,7 +92,7 @@ $(document).ready(function() {
                 $('#victory-image').fadeIn(1000);
                 setTimeout(function() {
                     victory = true;
-                    $('#submit').prop('disabled', true).css({ backgroundColor: "rgba(64,64,64, 0.8)", cursor: "not-allowed" });
+                    $('#input').prop('disabled', true).css({ backgroundColor: "rgba(64,64,64, 0.8)", cursor: "not-allowed" });
                     $('#victory-image').fadeOut(800);
                     gameVictory(count - 1);
                 }, 2500);
@@ -106,7 +106,7 @@ $(document).ready(function() {
                 $('#defeat-image').fadeIn(1000);
                 setTimeout(function() {
                     victory = true;
-                    $('#submit').prop('disabled', true).css({ backgroundColor: "rgba(64,64,64, 0.8)", cursor: "not-allowed" });
+                    $('#input').prop('disabled', true).css({ backgroundColor: "rgba(64,64,64, 0.8)", cursor: "not-allowed" });
                     $('#defeat-image').fadeOut(800);
                     gameDefeat(answer);
                 }, 2500);
