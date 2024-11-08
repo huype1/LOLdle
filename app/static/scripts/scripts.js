@@ -42,7 +42,6 @@ function initializeGame() {
         const totalChampions = 50
         currentChampionId = Math.floor(Math.random() * totalChampions) + 1;
         sessionStorage.setItem('currentChampionId', currentChampionId);
-        console.log(currentChampionId)
     } else {
         currentChampionId = parseInt(sessionStorage.getItem('currentChampionId'));
     }
