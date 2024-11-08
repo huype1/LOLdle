@@ -121,7 +121,7 @@ def login():
     return render_template('login.html', title='Sign In', form=form)
 @app.route('/count', methods=['GET'])
 def numberOfChampions():
-    championCount = Champion.query().count()
+    championCount = Champion.query.count()
     print(championCount)
     return jsonify({'count': championCount})
 

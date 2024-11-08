@@ -27,9 +27,22 @@ $.ajax({
  */
 function initializeGame() {
     if (!sessionStorage.getItem('currentChampionId')) {
+//         $.ajax({
+//                url: "/count",
+//                method: "GET",
+//                success: function(response) {
+//                    const totalChampions = response.count;
+//                    const currentChampionId = Math.floor(Math.random() * totalChampions) + 1;
+//                    sessionStorage.setItem('currentChampionId', currentChampionId);
+//                },
+//                error: function() {
+//                    console.error("Failed to fetch the champion count.");
+//                }
+//            });
         const totalChampions = 50
         currentChampionId = Math.floor(Math.random() * totalChampions) + 1;
         sessionStorage.setItem('currentChampionId', currentChampionId);
+        console.log(currentChampionId)
     } else {
         currentChampionId = parseInt(sessionStorage.getItem('currentChampionId'));
     }
