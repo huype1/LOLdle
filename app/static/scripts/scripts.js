@@ -39,7 +39,7 @@ function initializeGame() {
 //                    console.error("Failed to fetch the champion count.");
 //                }
 //            });
-        const totalChampions = 51
+        const totalChampions = 50
         currentChampionId = Math.floor(Math.random() * totalChampions) + 1;
         sessionStorage.setItem('currentChampionId', currentChampionId);
     } else {
