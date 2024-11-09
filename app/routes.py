@@ -327,3 +327,57 @@ def delete_account():
         db.session.rollback()
         flash('Error deleting account', 'error')
         return redirect(url_for(''))
+
+@app.route('/admin')
+@login_required
+def admin_panel():
+    if not current_user.is_authenticated or current_user.role != 1:
+        return redirect(url_for('home'))
+    
+    # Lấy danh sách users và champions để hiển thị trong trang admin
+    users = User.query.all()
+    champions = Champion.query.all()
+    return render_template('admin.html', users=users, champions=champions)
+
+@app.route('/admin/update_role/<int:user_id>', methods=['POST'])
+@login_required
+def update_user_role(user_id):
+    if not current_user.is_authenticated or current_user.role != 1:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        user = User.query.get(user_id)
+        if user:
+            # Đảo ngược role (0 -> 1 hoặc 1 -> 0)
+            user.role = 1 if user.role == 0 else 0
+            db.session.commit()
+            return jsonify({
+                'success': True,
+                'newRole': user.role,
+                'message': f'Role updated for user {user.username}'
+            })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
+@login_required
+def admin_delete_user(user_id):
+    if not current_user.is_authenticated or current_user.role != 1:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    if current_user.id == user_id:
+        return jsonify({'error': 'Cannot delete your own account'}), 400
+    
+    try:
+        user = User.query.get(user_id)
+        if user:
+            db.session.delete(user)
+            db.session.commit()
+            return jsonify({
+                'success': True,
+                'message': f'User {user.username} deleted successfully'
+            })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500

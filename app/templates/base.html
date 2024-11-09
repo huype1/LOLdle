@@ -49,8 +49,11 @@
                 <i class='clickable-icon fa fa-sign-out'></i>
             </span>
             {% if current_user.role == 1 %}
+            <span onclick="window.location.href='{{ url_for('admin_panel') }}'">
+                <i class="clickable-icon fa fa-dashboard" aria-hidden="true"></i>
+            </span>
             <span onclick="add_champion()">
-                <i class="clickable-icon  fa fa-plus-square" aria-hidden="true"></i>
+                <i class="clickable-icon fa fa-plus-square" aria-hidden="true"></i>
             </span>
             {% endif %}
             {% endif %}

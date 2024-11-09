@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <div class="dashboard-header">
+        <h1>Admin Dashboard</h1>
+        <p>Manage users and system settings</p>
+    </div>
+
+    <div class="stats-cards">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fa fa-users"></i>
+            </div>
+            <div class="stat-details">
+                <h3>Total Users</h3>
+                <p>{{ users|length }}</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fa fa-shield"></i>
+            </div>
+            <div class="stat-details">
+                <h3>Admins</h3>
+                <p>{{ users|selectattr('role', 'equalto', 1)|list|length }}</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fa fa-gamepad"></i>
+            </div>
+            <div class="stat-details">
+                <h3>Champions</h3>
+                <p>{{ champions|length }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <div class="section-header">
+            <h2><i class="fa fa-users"></i> User Management</h2>
+            <div class="search-box">
+                <input type="text" id="userSearch" placeholder="Search users...">
+                <i class="fa fa-search"></i>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr id="user-row-{{ user.id }}" class="user-row">
+                        <td>{{ user.id }}</td>
+                        <td>
+                            <div class="user-info">
+                                <span class="username">{{ user.username }}</span>
+                            </div>
+                        </td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <span class="role-badge {% if user.role == 1 %}admin{% else %}user{% endif %}">
+                                {{ 'Admin' if user.role == 1 else 'User' }}
+                            </span>
+                        </td>
+                        <td class="action-buttons">
+                            {% if user.id != current_user.id %}
+                                <button onclick="updateUserRole({{ user.id }})" class="action-btn role-btn">
+                                    <i class="fa {% if user.role == 1 %}fa-user{% else %}fa-user-plus{% endif %}"></i>
+                                    {{ 'Remove Admin' if user.role == 1 else 'Make Admin' }}
+                                </button>
+                                <button onclick="deleteUser({{ user.id }})" class="action-btn delete-btn">
+                                    <i class="fa fa-trash"></i>
+                                    Delete
+                                </button>
+                            {% else %}
+                                <span class="current-user-badge">
+                                    <i class="fa fa-user-circle"></i> Current User
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<script>
+// Tìm kiếm user
+document.getElementById('userSearch').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('.user-row');
+    
+    rows.forEach(row => {
+        const username = row.querySelector('.username').textContent.toLowerCase();
+        const email = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+        
+        if (username.includes(searchTerm) || email.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+function updateUserRole(userId) {
+    if (confirm('Are you sure you want to change this user\'s role?')) {
+        fetch(`/admin/update_role/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                showNotification('Error updating role: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error updating role', 'error');
+        });
+    }
+}
+
+function deleteUser(userId) {
+    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+        fetch(`/admin/delete_user/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`user-row-${userId}`).remove();
+                showNotification('User deleted successfully', 'success');
+            } else {
+                showNotification('Error deleting user: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error deleting user', 'error');
+        });
+    }
+}
+
+function showNotification(message, type) {
+    // Tạo notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    // Thêm vào body
+    document.body.appendChild(notification);
+    
+    // Xóa sau 3 giây
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+</script>
+
+{% endblock %}
