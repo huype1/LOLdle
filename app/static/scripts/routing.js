@@ -15,3 +15,7 @@ function add_champion() {
     sessionStorage.clear();
     location.href = "/champion";
 }
+function homepage() {
+    sessionStorage.clear();
+    location.href = "/";
+}
