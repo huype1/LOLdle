@@ -778,9 +778,7 @@ a {
   transition: transform 0.2s;
 }
 
-.stat-card:hover {
-  transform: translateY(-5px);
-}
+
 
 .stat-icon {
   background: #e3f2fd;
